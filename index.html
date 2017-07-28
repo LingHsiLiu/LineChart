@@ -3,129 +3,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <script src="https://d3js.org/d3.v3.min.js"></script>
-  <style>
-    body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
-    .line {
-      fill: none;
-      stroke: black;
-      stroke-width: 1.5px;
-    }
-  </style>
+
 </head>
 
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+</style>
 <body>
-  <script>
-    // Feel free to change or delete any of the code you see in this editor!
-    var svg = d3.select("body").append("svg")
-      .attr("width", 960)
-      .attr("height", 500)
 
-    var width = 800;
-    var height = 400;
+<!-- load the d3.js library -->    	
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
 
-    // http://bl.ocks.org/zanarmstrong/raw/05c1e95bf7aa16c4768e/
-    var parseDate = d3.time.format("%Y-%m");
-    var displayDate = d3.time.format("%b %y");
-    var displayValue = d3.format(",.0f");
-    
-    // Ordinal scale
-    var x = d3.scale.ordinal()
-        .rangeRoundBands([0, width], .5);
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
-    var y = d3.scale.linear()
-        .range([height, height - 200]);
+// parse the date / time
+var parseTime = d3.timeParse("%d-%b-%y");
 
-    var line = d3.svg.line()
-        .x(function(d) { return x(d.name); })
-        .y(function(d) { return y(d.value); });
-    
-    var g = svg.append("g")
-    	.attr("transform", "translate(50, 0)")
-    
-   	d3.json("dataset.json", function(data) {
+// set the ranges
+var x = d3.scaleTime().range([0, width]);
+var y = d3.scaleLinear().range([height, 0]);
 
-      // Pre-processing
-      data.forEach(function(d) {
-				d.value;// = +d.value;
-        d["date"] = parseDate.parse(d["date"]);
-      });
-      
-      x.domain(data.map(function(d) { return d.name; }));
-			y.domain([0, d3.max(data, function(d) { return d.value; })]);
-      
-      svg.selectAll("text").data(data).enter()
-       .append("text")
-        .text(function(d, i) { return displayDate(d.date); })
-        .attr("y", 420)
-        .attr("x", function(d) { return x(d.name); })
-        .style("font-size", 15)
-        .style("font-family", "monospace");
+// define the line
+var valueline = d3.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); });
 
-      g.selectAll(".value").data(data).enter()
-       .append("text")
-        .text(function(d, i) { return displayValue(d.value); })
-        .attr("class", "value")
-        .attr("y", function(d) { return y(d.value)-20; })
-        .attr("x", function(d) { return x(d.name);})
-        .style("font-size", 20)
-      	.style("opacity",0)
-        .style("font-family", "monospace");
+// append the svg obgect to the body of the page
+// appends a 'group' element to 'svg'
+// moves the 'group' element to the top left margin
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
 
-      g.selectAll("path").data([data]).enter().append("path")
-        .attr("class", "line")
-        .attr("d", line);
-     
-     g.selectAll("line").data(data).enter().append("line")       
-                    .attr('x1',function(d) { return x(d.name); })
-                    .attr('y1',function(d) { return y(0); })
-                    .attr('x2',function(d) { return x(d.name); })
-                    .attr('y2',function(d) { return y(d.value); })
-                    .style("stroke-width", 2)
-                    .style("stroke", "gray")
-                    .style("stroke-dasharray", ("2, 2"))
-     								.style("opacity",0);
+// Get the data
+d3.csv("data.csv", function(error, data) {
+  if (error) throw error;
 
-  
-      g.selectAll("circle").data(data).enter()
-      .append("circle")
-      .attr("cx",function(d) { return x(d.name); })
-  		.attr("cy",function(d) { return y(d.value); })
-      .attr("r",8)  
-      .attr("opacity",0.15)
-       .on("mouseover", function(d) {
-      	d3.select(this).attr("opacity",1).style("fill", "red");
-      	d3.selectAll(".value").filter(function(e) {
-          return d === e;
-        })
-        .style("opacity",1)
-        .style("font-size", 30);
-        d3.selectAll("line").filter(function(e) {
-          return d === e;
-        })
-        .style("opacity",1)
-      
-    	})
-      
-			.on("mouseout", function(d) {
-      			d3.select(this).transition().duration(50).style("fill","black").attr("opacity",0.15);
-        d3.selectAll(".value").filter(function(e) {
-          return d === e;})
-          .style("opacity",0)
-        .transition().duration(100);
-      
-   
-       d3.selectAll("line").filter(function(e) {
-          return d === e;
-        })
-        .style("opacity",0)
-       .transition().duration(100);
-        });
-      
-    });
+  // format the data
+  data.forEach(function(d) {
+      d.date = parseTime(d.date);
+      d.close = +d.close;
+  });
 
-  </script>
+  // Scale the range of the data
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.close; })]);
+
+  // Add the valueline path.
+  svg.append("path")
+      .data([data])
+      .attr("class", "line")
+      .attr("d", valueline);
+
+  // Add the X Axis
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+  // Add the Y Axis
+  svg.append("g")
+      .call(d3.axisLeft(y));
+
+});
+
+</script>
 </body>
 
 
