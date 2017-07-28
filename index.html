@@ -1,65 +1,162 @@
-<!DOCTYPE html>
 <html>
-	  <head>    
-	    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	    <title>Testing Pie Chart</title>
-	    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?2.1.3"></script>
-	    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.geom.js?2.1.3"></script>
-	    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js?2.1.3"></script>
+<head></head>
+<body>
 
-	    <style type="text/css">
-		.slice text {
-		    font-size: 16pt;
-		    font-family: Arial;
-		}   
-	    </style>
-	  </head>
-	  <body>
-	    <script type="text/javascript">
+<div id="pieChart"></div>
 
-	    var w = 300,                        //width
-	    h = 300,                            //height
-	    r = 100,                            //radius
-	    color = d3.scale.category20c();     //builtin range of colors
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.7.2/d3.min.js"></script>
+<script src="d3pie.min.js"></script>
+<script>
+var pie = new d3pie("pieChart", {
+	"header": {
+		"title": {
+			"text": "Top 15 Fears",
+			"fontSize": 34,
+			"font": "courier"
+		},
+		"subtitle": {
+			"text": "What strikes the most terror in people?",
+			"color": "#999999",
+			"fontSize": 10,
+			"font": "courier"
+		},
+		"location": "pie-center",
+		"titleSubtitlePadding": 10
+	},
+	"footer": {
+		"text": "* This was curious. We're not sure why several people regard Winnipeg as a Top 15 Fear.",
+		"color": "#999999",
+		"fontSize": 10,
+		"font": "open sans",
+		"location": "bottom-left"
+	},
+	"size": {
+		"canvasWidth": 590,
+		"pieInnerRadius": "95%",
+		"pieOuterRadius": "70%"
+	},
+	"data": {
+		"sortOrder": "label-desc",
+		"content": [
+			{
+				"label": "Spiders",
+				"value": 2,
+				"color": "#333333"
+			},
+			{
+				"label": "Mother-in-laws",
+				"value": 10,
+				"color": "#444444"
+			},
+			{
+				"label": "Sharks",
+				"value": 8,
+				"color": "#555555"
+			},
+			{
+				"label": "Alien invasion",
+				"value": 8,
+				"color": "#666666"
+			},
+			{
+				"label": "Learning Objective-C",
+				"value": 5,
+				"color": "#777777"
+			},
+			{
+				"label": "Public speaking",
+				"value": 3,
+				"color": "#888888"
+			},
+			{
+				"label": "Donald Trump",
+				"value": 4,
+				"color": "#999999"
+			},
+			{
+				"label": "The Zombie Apocalypse",
+				"value": 4,
+				"color": "#cb2121"
+			},
+			{
+				"label": "The City of Winnipeg *",
+				"value": 3,
+				"color": "#830909"
+			},
+			{
+				"label": "IE 6",
+				"value": 2,
+				"color": "#923e99"
+			},
+			{
+				"label": "Planes with/out snakes",
+				"value": 5,
+				"color": "#ae83d5"
+			},
+			{
+				"label": "Off-by-one errors",
+				"value": 3,
+				"color": "#111111"
+			},
+			{
+				"label": "Chickadees",
+				"value": 4,
+				"color": "#050505"
+			},
+			{
+				"label": "Owning a cat",
+				"value": 1,
+				"color": "#646464"
+			},
+			{
+				"label": "Canada",
+				"value": 4,
+				"color": "#747474"
+			}
+		]
+	},
+	"labels": {
+		"outer": {
+			"format": "label-percentage1",
+			"pieDistance": 20
+		},
+		"inner": {
+			"format": "none"
+		},
+		"mainLabel": {
+			"fontSize": 11
+		},
+		"percentage": {
+			"color": "#999999",
+			"fontSize": 11,
+			"decimalPlaces": 0
+		},
+		"value": {
+			"color": "#cccc43",
+			"fontSize": 11
+		},
+		"lines": {
+			"enabled": true,
+			"color": "#777777"
+		},
+		"truncation": {
+			"enabled": true
+		}
+	},
+	"effects": {
+		"pullOutSegmentOnClick": {
+			"effect": "linear",
+			"speed": 400,
+			"size": 8
+		}
+	},
+	"misc": {
+		"colors": {
+			"segmentStroke": "#000000"
+		}
+	}
+});
+</script>
 
-	    data = [{"label":"one", "value":20}, 
-		    {"label":"two", "value":50}, 
-		    {"label":"three", "value":30}];
-
-	    var vis = d3.select("body")
-		.append("svg:svg")              //create the SVG element inside the <body>
-		.data([data])                   //associate our data with the document
-		    .attr("width", w)           //set the width and height of our visualization (these will be attributes of the <svg> tag
-		    .attr("height", h)
-		.append("svg:g")                //make a group to hold our pie chart
-		    .attr("transform", "translate(" + r + "," + r + ")")    //move the center of the pie chart from 0, 0 to radius, radius
-
-	    var arc = d3.svg.arc()              //this will create <path> elements for us using arc data
-		.outerRadius(r);
-
-	    var pie = d3.layout.pie()           //this will create arc data for us given a list of values
-		.value(function(d) { return d.value; });    //we must tell it out to access the value of each element in our data array
-
-	    var arcs = vis.selectAll("g.slice")     //this selects all <g> elements with class slice (there aren't any yet)
-		.data(pie)                          //associate the generated pie data (an array of arcs, each having startAngle, endAngle and value properties) 
-		.enter()                            //this will create <g> elements for every "extra" data element that should be associated with a selection. The result is creating a <g> for every object in the data array
-		    .append("svg:g")                //create a group to hold each slice (we will have a <path> and a <text> element associated with each slice)
-			.attr("class", "slice");    //allow us to style things in the slices (like text)
-
-		arcs.append("svg:path")
-			.attr("fill", function(d, i) { return color(i); } ) //set the color for each slice to be chosen from the color function defined above
-			.attr("d", arc);                                    //this creates the actual SVG path using the associated data (pie) with the arc drawing function
-
-		arcs.append("svg:text")                                     //add a label to each slice
-			.attr("transform", function(d) {                    //set the label's origin to the center of the arc
-			//we have to make sure to set these before calling arc.centroid
-			d.innerRadius = 0;
-			d.outerRadius = r;
-			return "translate(" + arc.centroid(d) + ")";        //this gives us a pair of coordinates like [50, 50]
-		    })
-		    .attr("text-anchor", "middle")                          //center the text on it's origin
-		    .text(function(d, i) { return data[i].label; });        //get the label from our original data array
-
-	    </script>
-	  </body>
+</body>
 </html>
