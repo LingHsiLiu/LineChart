@@ -1,271 +1,65 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>CS498 Data Visualization Final Project	</title>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/vega/3.0.0-rc2/vega.js"></script>
-  		<script src="https://cdnjs.cloudflare.com/ajax/libs/vega-lite/2.0.0-beta.10/vega-lite.js"></script>
-  		<script src="https://cdnjs.cloudflare.com/ajax/libs/vega-embed/3.0.0-beta.19/vega-embed.js"></script>
-		
-		<meta charset="utf-8">
-		<style> /* set the CSS */
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<title>Testing Pie Chart</title>
+		<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?2.1.3"></script>
+		<script type="text/javascript" src="http://mbostock.github.com/d3/d3.geom.js?2.1.3"></script>
+		<script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js?2.1.3"></script>
 
-		body { font: 12px Arial;}
-
-		path { 
-		    stroke: steelblue;
-		    stroke-width: 2;
-		    fill: none;
-		}
-
-		.axis path,
-		.axis line {
-		    fill: none;
-		    stroke: grey;
-		    stroke-width: 1;
-		    shape-rendering: crispEdges;
-		}
-
-		div.tooltip {	
-		    position: absolute;			
-		    text-align: center;			
-		    width: 60px;					
-		    height: 28px;					
-		    padding: 2px;				
-		    font: 12px sans-serif;		
-		    background: lightsteelblue;	
-		    border: 0px;		
-		    border-radius: 8px;			
-		    pointer-events: none;			
-		}
-
+		<style type="text/css">
+		     .slice text {
+			 font-size: 16pt;
+			 font-family: Arial;
+		     }   
 		</style>
 	</head>
 	<body>
-		<h1>CS498 Data Visualization Final Project</h1>
-		
-		<div id="vis"></div>
 		<script type="text/javascript">
-    			var yourVlSpec = {
-      			"$schema": "https://vega.github.io/schema/vega-lite/v2.0.json",
-      			"description": "A simple bar chart with embedded data.",
-      				"data": {
-        			"values": [
-          				{"a": "A","b": 28}, {"a": "B","b": 55}, {"a": "C","b": 43},
-          				{"a": "D","b": 91}, {"a": "E","b": 81}, {"a": "F","b": 53},
-          				{"a": "G","b": 19}, {"a": "H","b": 87}, {"a": "I","b": 52}
-        				]
-      				},
-      				"mark": "bar",
-      				"encoding": {
-        			"x": {"field": "a", "type": "ordinal"},
-        			"y": {"field": "b", "type": "quantitative"}
-      				}
-    			}
-    			vega.embed("#vis", yourVlSpec);
-  		</script>
-		
-		
-		<script src="//d3js.org/d3.v3.min.js"></script>
-		<script src="http://d3js.org/d3.v3.min.js"></script>
-		<!-- load the d3.js library -->    
 
-		<script>
+		    var w = 300,                        //width
+		    h = 300,                            //height
+		    r = 100,                            //radius
+		    color = d3.scale.category20c();     //builtin range of colors
 
-		// Set the dimensions of the canvas / graph
-		var margin = {top: 30, right: 20, bottom: 30, left: 50},
-		    width = 600 - margin.left - margin.right,
-		    height = 270 - margin.top - margin.bottom;
+		    data = [{"label":"one", "value":20}, 
+			    {"label":"two", "value":50}, 
+			    {"label":"three", "value":30}];
 
-		// Parse the date / time
-		var parseDate = d3.time.format("%d-%b-%y").parse;
-		var formatTime = d3.time.format("%e %B");
+		    var vis = d3.select("body")
+			.append("svg:svg")              //create the SVG element inside the <body>
+			.data([data])                   //associate our data with the document
+			    .attr("width", w)           //set the width and height of our visualization (these will be attributes of the <svg> tag
+			    .attr("height", h)
+			.append("svg:g")                //make a group to hold our pie chart
+			    .attr("transform", "translate(" + r + "," + r + ")")    //move the center of the pie chart from 0, 0 to radius, radius
 
-		// Set the ranges
-		var x = d3.time.scale().range([0, width]);
-		var y = d3.scale.linear().range([height, 0]);
+		    var arc = d3.svg.arc()              //this will create <path> elements for us using arc data
+			.outerRadius(r);
 
-		// Define the axes
-		var xAxis = d3.svg.axis().scale(x)
-		    .orient("bottom").ticks(5);
+		    var pie = d3.layout.pie()           //this will create arc data for us given a list of values
+			.value(function(d) { return d.value; });    //we must tell it out to access the value of each element in our data array
 
-		var yAxis = d3.svg.axis().scale(y)
-		    .orient("left").ticks(5);
+		    var arcs = vis.selectAll("g.slice")     //this selects all <g> elements with class slice (there aren't any yet)
+			.data(pie)                          //associate the generated pie data (an array of arcs, each having startAngle, endAngle and value properties) 
+			.enter()                            //this will create <g> elements for every "extra" data element that should be associated with a selection. The result is creating a <g> for every object in the data array
+			    .append("svg:g")                //create a group to hold each slice (we will have a <path> and a <text> element associated with each slice)
+				.attr("class", "slice");    //allow us to style things in the slices (like text)
 
-		// Define the line
-		var valueline = d3.svg.line()
-		    .x(function(d) { return x(d.date); })
-		    .y(function(d) { return y(d.close); });
+			arcs.append("svg:path")
+				.attr("fill", function(d, i) { return color(i); } ) //set the color for each slice to be chosen from the color function defined above
+				.attr("d", arc);                                    //this creates the actual SVG path using the associated data (pie) with the arc drawing function
 
-		// Define the div for the tooltip
-		var div = d3.select("body").append("div")	
-		    .attr("class", "tooltip")				
-		    .style("opacity", 0);
+			arcs.append("svg:text")                                     //add a label to each slice
+				.attr("transform", function(d) {                    //set the label's origin to the center of the arc
+				//we have to make sure to set these before calling arc.centroid
+				d.innerRadius = 0;
+				d.outerRadius = r;
+				return "translate(" + arc.centroid(d) + ")";        //this gives us a pair of coordinates like [50, 50]
+			    })
+			    .attr("text-anchor", "middle")                          //center the text on it's origin
+			    .text(function(d, i) { return data[i].label; });        //get the label from our original data array
 
-		// Adds the svg canvas
-		var svg = d3.select("body")
-		    .append("svg")
-			.attr("width", width + margin.left + margin.right)
-			.attr("height", height + margin.top + margin.bottom)
-		    .append("g")
-			.attr("transform", 
-			      "translate(" + margin.left + "," + margin.top + ")");
-
-		// Get the data
-		d3.csv("data.csv", function(error, data) {
-		    data.forEach(function(d) {
-			d.date = parseDate(d.date);
-			d.close = +d.close;
-		    });
-
-		    // Scale the range of the data
-		    x.domain(d3.extent(data, function(d) { return d.date; }));
-		    y.domain([0, d3.max(data, function(d) { return d.close; })]);
-
-		    // Add the valueline path.
-		    svg.append("path")
-			.attr("class", "line")
-			.attr("d", valueline(data));
-
-		    // Add the scatterplot
-		    svg.selectAll("dot")	
-			.data(data)			
-		    .enter().append("circle")								
-			.attr("r", 5)		
-			.attr("cx", function(d) { return x(d.date); })		 
-			.attr("cy", function(d) { return y(d.close); })		
-			.on("mouseover", function(d) {		
-			    div.transition()		
-				.duration(200)		
-				.style("opacity", .9);		
-			    div	.html(formatTime(d.date) + "<br/>"  + d.close)	
-				.style("left", (d3.event.pageX) + "px")		
-				.style("top", (d3.event.pageY - 28) + "px");	
-			    })					
-			.on("mouseout", function(d) {		
-			    div.transition()		
-				.duration(500)		
-				.style("opacity", 0);	
-			});
-
-		    // Add the X Axis
-		    svg.append("g")
-			.attr("class", "x axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis);
-
-		    // Add the Y Axis
-		    svg.append("g")
-			.attr("class", "y axis")
-			.call(yAxis);
-
-		});
-
-		</script>
-		
-		
-		<meta charset="utf-8">
-		<style>
-			.state{
-				fill: none;
-				stroke: #a9a9a9;
-				stroke-width: 1;
-			}
-			.state:hover{
-				fill-opacity:0.5;
-			}
-			#tooltip {   
-				position: absolute;           
-				text-align: center;
-				padding: 20px;             
-				margin: 10px;
-				font: 12px sans-serif;        
-				background: lightsteelblue;   
-				border: 1px;      
-				border-radius: 2px;           
-				pointer-events: none;         
-			}
-			#tooltip h4{
-				margin:0;
-				font-size:14px;
-			}
-			#tooltip{
-				background:rgba(0,0,0,0.9);
-				border:1px solid grey;
-				border-radius:5px;
-				font-size:12px;
-				width:auto;
-				padding:4px;
-				color:white;
-				opacity:0;
-			}
-			#tooltip table{
-				table-layout:fixed;
-			}
-			#tooltip tr td{
-				padding:0;
-				margin:0;
-			}
-			#tooltip tr td:nth-child(1){
-				width:50px;
-			}
-			#tooltip tr td:nth-child(2){
-				text-align:center;
-			}
-		</style>
-		<body>
-		<div id="tooltip"></div><!-- div to hold tooltip. -->
-		<svg width="960" height="600" id="statesvg"></svg> <!-- svg to hold the map. -->
-		<script src="uStates.js"></script> <!--  creates uStates. -->
-		<script src="//uStates.js"></script> <!-- creates uStates. -->
-		<script src="/uStates.js"></script> <!-- creates uStates. -->
-		<script src="http://d3js.org/d3.v3.min.js"></script>
-		<script>
-			function tooltipHtml(n, d){	/* function to create html content string in tooltip div. */
-				return "<h4>"+n+"</h4><table>"+
-					"<tr><td>Low</td><td>"+(d.low)+"</td></tr>"+
-					"<tr><td>Average</td><td>"+(d.avg)+"</td></tr>"+
-					"<tr><td>High</td><td>"+(d.high)+"</td></tr>"+
-					"</table>";
-			}
-			var sampleData ={};	/* Sample random data. */	
-			["HI", "AK", "FL", "SC", "GA", "AL", "NC", "TN", "RI", "CT", "MA",
-			"ME", "NH", "VT", "NY", "NJ", "PA", "DE", "MD", "WV", "KY", "OH", 
-			"MI", "WY", "MT", "ID", "WA", "DC", "TX", "CA", "AZ", "NV", "UT", 
-			"CO", "NM", "OR", "ND", "SD", "NE", "IA", "MS", "IN", "IL", "MN", 
-			"WI", "MO", "AR", "OK", "KS", "LS", "VA"]
-				.forEach(function(d){ 
-					var low=Math.round(100*Math.random()), 
-						mid=Math.round(100*Math.random()), 
-						high=Math.round(100*Math.random());
-					sampleData[d]={low:d3.min([low,mid,high]), high:d3.max([low,mid,high]), 
-							avg:Math.round((low+mid+high)/3), color:d3.interpolate("#ffffcc", "#800026")(low/100)}; 
-				});
-			/* draw states on id #statesvg */	
-			uStates.draw("#statesvg", sampleData, tooltipHtml);
-			d3.select(self.frameElement).style("height", "600px"); 
-		</script>
-		
-		<nav>
-    		<ul>
-        		<li><a href="/CS498DataViz/d3.js">Home</a></li>
-	        	<li><a href="/about">About</a></li>
-        		<li><a href="/linechart.html">CV</a></li>
-			<li><a href="//linechart.html">CV</a></li>
-			<li><a href="linechart.html">CV</a></li>
-        		<li><a href="/blog">Blog</a></li>
-    		</ul>
-		</nav>
-		<div class="container">
-    		<div class="blurb">
-        		<h1>Hi there, I'm Althea!</h1>
-				<p>I'm best known as the horrible cop from <em>A Touch of Evil</em> Don't trust me. <a href="/about">Read more about my life...</a></p>
-    		</div><!-- /.blurb -->
-		</div><!-- /.container -->
-		<footer>
-    		<ul>
-        		<li><a href="mailto:hankquinlanhub@gmail.com">email</a></li>
-        		<li><a href="https://github.com/hankquinlan">github.com/hankquinlan</a></li>
-			</ul>
-		</footer>
+		    </script>
 	</body>
 </html>
